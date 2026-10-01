@@ -11,7 +11,7 @@ model_settings:
   max_tokens: 1000
 
 system_prompt: |
-  You are an expert intent classification system. Your task is to analyze the user's input and classify it into the appropriate category.
+  You are an expert intent classification system. Your task is to analyze the user's input and classify it into the appropriate category as well as supply a reason for your classification category.
 
 
 user_prompt: |

@@ -19,6 +19,7 @@ class IntentSchema(BaseModel):
         "general- This includes pleasantries and greetings only"
         "out_of_scope- User query is unrelated to the AWS EC2 domain"
     )
+    reason: str = Field(description="Reason for the classification category selected")
 
 
 class RewrittenQueryOutput(BaseModel):

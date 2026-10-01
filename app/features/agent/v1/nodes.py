@@ -103,15 +103,13 @@ async def output_guardrail_node(state: GraphState):
     return {"is_output_safe": is_output_safe}
 
 
-async def fallback_node(state: GraphState) -> dict:
+async def fallback_node(state: GraphState):
     """
     Handles out-of-scope queries and unsafe user inputs.
     Returns a standardized polite refusal and guidance message.
     """
-    FALLBACK_MESSAGE = (
-        "Your query is currently outside my capabilities, however, "
-        "I can provide assistance with AWS EC2 code provisioning, validation and error diagnosis."
-    )
+    FALLBACK_MESSAGE: str = "Your query is currently outside my capabilities, however, I can provide assistance with AWS EC2 code provisioning, validation and error diagnosis."
+
     return {
         "synthesis_response": FALLBACK_MESSAGE,
         "messages": [AIMessage(content=FALLBACK_MESSAGE)],

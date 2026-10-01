@@ -72,7 +72,7 @@ async def stream_agent(
         Literal[
             "values", "updates", "checkpoints", "tasks", "debug", "messages", "custom"
         ]
-    ] = ["messages"]
+    ] = ["messages", "updates"]
     if with_status:
         stream_modes.append("custom")
 
@@ -81,10 +81,34 @@ async def stream_agent(
         config=config,
         stream_mode=stream_modes,
     ):
-        if chunk_type == "messages":
-            msg, _ = chunk_data
-            if isinstance(msg, AIMessageChunk) and msg.content:
-                yield {"type": "token", "content": str(msg.content)}
+        RESPONSE_NODE_NAMES = ("generator_node", "fallback_node")
+        if chunk_type == "messages" and isinstance(chunk_data, tuple):
+            msg, metadata = chunk_data
+
+            if (
+                metadata.get("langgraph_node") in RESPONSE_NODE_NAMES
+                and isinstance(msg, AIMessageChunk)
+                and msg.content
+            ):
+                text = ""
+                if isinstance(msg.content, str):
+                    text = msg.content
+                elif isinstance(msg.content, list):
+                    # Process Gemini's list of content blocks
+                    text = "".join(
+                        block.get("text", "")
+                        for block in msg.content
+                        if isinstance(block, dict) and block.get("type") == "text"
+                    )
+
+                if text:
+                    yield {"type": "token", "content": text}
+
+        elif chunk_type == "updates" and isinstance(chunk_data, dict):
+            if "fallback_node" in chunk_data:
+                node_output = chunk_data["fallback_node"]
+                fallback_text = node_output.get("synthesis_response")
+                yield {"type": "token", "content": fallback_text}
 
         elif chunk_type == "custom":
             yield {"type": "status", "content": str(chunk_data)}

@@ -14,7 +14,7 @@ def is_input_safe_router(state: GraphState):
 def intent_router(state: GraphState):
     if state.intent == UserIntent.GENERAL:
         return "generator_node"
-    elif state.intent == UserIntent.ERROR_DIAGNOSIS or UserIntent.PROVISIONING:
+    elif state.intent in (UserIntent.ERROR_DIAGNOSIS, UserIntent.PROVISIONING):
         return "query_rewriter_node"
     else:
         return "fallback_node"
