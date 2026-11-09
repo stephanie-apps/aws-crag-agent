@@ -9,6 +9,7 @@ dependencies = [
     "asyncpg>=0.31.0",
     "chainlit>=2.11.1",
     "fastapi[standard]>=0.139.0",
+    "fastembed>=0.9.1",
     "langchain>=1.3.15",
     "langchain-classic>=1.0.8",
     "langchain-community>=0.4.2",

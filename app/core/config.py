@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from pydantic import DirectoryPath, Field, SecretStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import DirectoryPath, Field, SecretStr, computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,8 +14,11 @@ class AppSettings(BaseSettings):
     allowed_hosts: list[str] = ["*"]
     allowed_origins: list[str] = ["*"]
 
-    async_database_url: SecretStr
-    sync_database_url: SecretStr
+    postgres_user: str = "postgres"
+    postgres_password: SecretStr 
+    postgres_db: str = "postgres"
+    postgres_host: str = "postgres"
+    postgres_port: int = 5432
 
     groq_api_key: SecretStr
     prompts_dir: DirectoryPath = Field(
@@ -24,13 +27,24 @@ class AppSettings(BaseSettings):
 
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     documents_folder: DirectoryPath = Field(
-        default_factory=lambda: BASE_DIR / "knowledge_base"
+        default_factory=lambda: BASE_DIR
     )
     documents_github_user: str
     documents_github_repo: str
     documents_github_branch: str
     vector_collection_name: str = "aws_ec2_documentation"
     vector_db_type: str = "pgvector"
+
+    @computed_field
+    @property
+    def sync_database_url(self) -> str:
+     return f"postgresql://{self.postgres_user}:{self.postgres_password.get_secret_value()}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+
+    @computed_field
+    @property
+    def async_database_url(self) -> str:
+     return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password.get_secret_value()}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"

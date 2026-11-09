@@ -4,11 +4,6 @@ services:
     restart: always
     environment:
       - API_BASE_URL
-      - DB_NAME
-      - DB_USER
-      - DB_PASSWORD
-      - DB_HOST
-      - DB_PORT
       - DATABASE_URL
       - TEST_DATABASE_URL
       - RESEND_API_KEY
@@ -20,7 +15,6 @@ services:
       - "8000:8000"  
     networks:
       - api_network
-      - db_network
     depends_on:
       postgres:
         condition: service_healthy
@@ -29,13 +23,13 @@ services:
     image: pgvector/pgvector:pg17
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER}        
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      - POSTGRES_USER    
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - db_network
+      - api_network 
     expose:
       - "5432"      
     healthcheck:
@@ -49,5 +43,3 @@ volumes:
 
 networks:
   api_network:    
-  db_network:
-    internal: true
