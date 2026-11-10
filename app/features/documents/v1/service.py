@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ResourceNotFoundException
 from app.core.schemas import PaginatedData
-from app.features.documents.v1.models import IndexStatRecord
 from app.features.documents.v1.repository import DocumentRepository
 from app.features.documents.v1.schemas.req import IndexStatFilterParams
 from app.features.documents.v1.schemas.res import IndexStat
@@ -37,8 +36,8 @@ class DocumentService:
         )
         return paginated_index_stats
 
-    async def get_job_index_stats(self, job_id: uuid.UUID) -> IndexStatRecord:
+    async def get_job_index_stats(self, job_id: uuid.UUID) -> IndexStat:
         index_stat = await self.documents_repo.get_index_stat_by_id(job_id)
         if not index_stat:
             raise ResourceNotFoundException()
-        return index_stat
+        return IndexStat.model_validate(index_stat)

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.features.documents.v1.schemas.enums import IndexingStatus
 
@@ -15,3 +15,5 @@ class IndexStat(BaseModel):
     num_updated: int | None
     num_skipped: int | None
     num_deleted: int | None
+
+    model_config = ConfigDict(from_attributes=True)

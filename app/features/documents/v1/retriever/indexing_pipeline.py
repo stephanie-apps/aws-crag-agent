@@ -26,7 +26,7 @@ from app.features.documents.v1.models import IndexStatRecord
 from app.features.documents.v1.retriever.vector_db import vector_store
 from app.features.documents.v1.schemas.enums import IndexingStatus
 
-db_url = settings.sync_database_url.get_secret_value()
+db_url = settings.sync_database_url
 
 TEXT_EXTENSIONS = {".md", ".txt", ".markdown", ".csv"}
 logger = structlog.get_logger()
