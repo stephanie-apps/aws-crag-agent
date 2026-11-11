@@ -168,6 +168,7 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
     gh_user = settings.documents_github_user.strip("/")
     gh_repo = settings.documents_github_repo.strip("/")
     gh_branch = settings.documents_github_branch
+    gh_token = settings.documents_github_token.get_secret_value()
 
     with Session(sync_engine) as db:
         new_job = IndexStatRecord(
@@ -184,8 +185,20 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
 
         try:
             with httpx.Client() as client:
-                tree_url = f"https://github.com/{gh_user}/{gh_repo}/git/trees/{gh_branch}?recursive=1"
-                repo_tree = client.get(tree_url).json()
+                tree_url = f"https://api.github.com/repos/{gh_user}/{gh_repo}/git/trees/{gh_branch}?recursive=1"
+                headers = {
+                        "Authorization": f"Bearer {gh_token}",
+                        "Accept": "application/vnd.github+json",
+                        "User-Agent": "aws-crag-agent"  
+                        }
+
+                response = client.get(tree_url, headers=headers)
+
+                if response.status_code != 200:
+                    raise ValueError(f"GitHub API Error | Status: {response.status_code} | "
+                                        f"URL: {tree_url} | headers: {headers} | Body: {response.text[:200]}")
+
+                repo_tree = response.json()
 
                 for item in repo_tree.get("tree", []):
                     file_path_str = item["path"]

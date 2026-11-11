@@ -32,6 +32,7 @@ class AppSettings(BaseSettings):
     documents_github_user: str
     documents_github_repo: str
     documents_github_branch: str
+    documents_github_token: SecretStr 
     vector_collection_name: str = "aws_ec2_documentation"
     vector_db_type: str = "pgvector"
 
