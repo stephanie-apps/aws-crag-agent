@@ -41,7 +41,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 # ==========================================
 FROM builder AS dev
 
-RUN uv sync --frozen
+RUN uv sync --frozen --no-cache
 
 COPY entrypoint.sh /app/entrypoint.sh
 # chmod +x /app/entrypoint.sh
