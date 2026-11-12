@@ -15,7 +15,15 @@ async def web_search_tool(user_question: str) -> str:
         web_results = await tavily_web_search.ainvoke({"query": user_question})
 
         formatted_context_blocks = []
+        documents_with_sources = []
         for index, result in enumerate(web_results, start=1):
+            documents_with_sources.append(
+                DocumentWithSource(
+                    index=index,
+                    file=result.get('url', 'N/A'),
+                    content=""
+                )
+            )
             formatted_context_blocks.append(
                 f"--- Web Context Block [{index}] ---\n"
                 f"Source URL: {result.get('url', 'N/A')}\n"
@@ -30,7 +38,7 @@ async def web_search_tool(user_question: str) -> str:
             "No real-time web search results could be retrieved due to system limits."
         )
 
-    return combined_web_context
+    return ([], combined_web_context)
 
 
 async def retriever_tool(user_question: str) -> tuple:
@@ -39,12 +47,13 @@ async def retriever_tool(user_question: str) -> tuple:
     try:
         nodes = await hybrid_retriever.aretrieve(user_question)
 
-        for index, node in enumerate(nodes):
+        for index, node in enumerate(nodes, start=1):
             file = node.node.metadata.get("source", f"Source  {index}")
             content = node.node.get_content()
 
             documents_with_sources.append(
                 DocumentWithSource(
+                    index=index,
                     file=file,
                     content=content,
                 )
