@@ -187,16 +187,18 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
             with httpx.Client() as client:
                 tree_url = f"https://api.github.com/repos/{gh_user}/{gh_repo}/git/trees/{gh_branch}?recursive=1"
                 headers = {
-                        "Authorization": f"Bearer {gh_token}",
-                        "Accept": "application/vnd.github+json",
-                        "User-Agent": "aws-crag-agent"  
-                        }
+                    "Authorization": f"Bearer {gh_token}",
+                    "Accept": "application/vnd.github+json",
+                    "User-Agent": "aws-crag-agent",
+                }
 
                 response = client.get(tree_url, headers=headers)
 
                 if response.status_code != 200:
-                    raise ValueError(f"GitHub API Error | Status: {response.status_code} | "
-                                        f"URL: {tree_url} | headers: {headers} | Body: {response.text[:200]}")
+                    raise ValueError(
+                        f"GitHub API Error | Status: {response.status_code} | "
+                        f"URL: {tree_url} | headers: {headers} | Body: {response.text[:200]}"
+                    )
 
                 repo_tree = response.json()
 
@@ -213,8 +215,9 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
                         source_id = f"github:{file_name}"
                         active_github_sources.add(source_id)
 
-                        raw_url = f"https://githubusercontent.com/{gh_user}/{gh_repo}/{gh_branch}/{file_path_str}"
-                        file_response = client.get(raw_url)
+                        raw_url = f"https://api.github.com/repos/{gh_user}/{gh_repo}/contents/{file_path_str}?ref={gh_branch}"
+                        file_response = client.get(raw_url, headers=headers)
+                        file_response.raise_for_status()
 
                         file_bytes = io.BytesIO(file_response.content)
 
