@@ -39,5 +39,6 @@ class OutputFeedback(BaseModel):
 
 
 class DocumentWithSource(BaseModel):
+    index: int
     content: str
     file: str
