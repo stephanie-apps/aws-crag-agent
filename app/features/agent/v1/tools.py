@@ -10,7 +10,7 @@ tavily_web_search = TavilySearch(max_results=3, search_depth="basic")
 logger = structlog.get_logger()
 
 
-async def web_search_tool(user_question: str) -> str:
+async def web_search_tool(user_question: str) -> tuple:
     try:
         web_results = await tavily_web_search.ainvoke({"query": user_question})
 
@@ -20,17 +20,19 @@ async def web_search_tool(user_question: str) -> str:
             documents_with_sources.append(
                 DocumentWithSource(
                     index=index,
-                    file=result.get('url', 'N/A'),
-                    content=""
+                    source_type="web",
+                    file=result.get("url", "Web Source {index}"),
+                    content="",
                 )
             )
             formatted_context_blocks.append(
-                f"--- Web Context Block [{index}] ---\n"
-                f"Source URL: {result.get('url', 'N/A')}\n"
+                f"--- Web Context Block [{index} (web)] ---\n"
+                f"Source URL: {result.get('source"Web Source {index}')}\n"
                 f"Extracted Content: {result.get('content', '')}\n"
             )
 
         combined_web_context = "\n".join(formatted_context_blocks)
+        return (documents_with_sources, combined_web_context)
 
     except (ConnectionError, TimeoutError, TypeError, ValueError, RuntimeError):
         logger.exception("Tavily Search Failed")
@@ -48,18 +50,19 @@ async def retriever_tool(user_question: str) -> tuple:
         nodes = await hybrid_retriever.aretrieve(user_question)
 
         for index, node in enumerate(nodes, start=1):
-            file = node.node.metadata.get("source", f"Source  {index}")
+            file = node.node.metadata.get("source", f"PDF Source  {index}")
             content = node.node.get_content()
 
             documents_with_sources.append(
                 DocumentWithSource(
                     index=index,
+                    source_type="pdf",
                     file=file,
                     content=content,
                 )
             )
             formatted_context_list.append(
-                f"--- Document Source [{index}]: {file} \n{content}"
+                f"--- Document Source [{index} (pdf)]: {file} \n{content}"
             )
 
         documents_with_sources_formatted_str = "\n\n".join(formatted_context_list)

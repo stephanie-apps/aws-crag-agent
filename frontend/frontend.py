@@ -1,9 +1,11 @@
+import os
 import uuid
 
 import chainlit as cl
 from chainlit.types import ThreadDict
 
 from app.features.agent.v1.graph import stream_agent
+from app.features.agent.v1.schemas import DocumentWithSource
 
 
 @cl.on_chat_start
@@ -18,6 +20,7 @@ async def ask_agent(prompt: str, session_id: uuid.UUID):
     cb = cl.LangchainCallbackHandler(stream_final_answer=True)
 
     res = cl.Message(content="")
+    retrieved_sources: list[DocumentWithSource] = []
 
     async with cl.Step(name="Thinking...", show_input=False) as status_step:
         async for chunk in stream_agent(
@@ -34,7 +37,33 @@ async def ask_agent(prompt: str, session_id: uuid.UUID):
                 await status_step.remove()
                 await res.stream_token(chunk["content"])
 
+            elif chunk["type"] == "sources":
+                retrieved_sources.extend(chunk["content"])
+
     await res.send()
+
+    if retrieved_sources:
+        elements = []
+        footer_links = []
+
+        for document in retrieved_sources:
+            if document.source_type == "pdf":
+                filename = os.path.basename(document.file)
+                label = f"[{document.index} ({document.source_type})] {filename}"
+
+                elements.append(
+                    cl.Text(name=label, content=document.content, display="side")
+                )
+                footer_links.append(label)
+
+            elif document.source_type == "web":
+                footer_links.append(f"[{document.index} ({document.source_type})]")
+
+        res.elements = elements
+        res.content += "\n\n**Sources:**\n" + "\n".join(
+            f"- {link}" for link in footer_links
+        )
+        await res.update()
 
 
 @cl.on_message

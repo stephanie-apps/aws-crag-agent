@@ -40,5 +40,6 @@ class OutputFeedback(BaseModel):
 
 class DocumentWithSource(BaseModel):
     index: int
+    source_type: Literal["pdf", "web"]
     content: str
     file: str
