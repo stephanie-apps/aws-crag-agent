@@ -34,8 +34,11 @@ workflow = graph.compile(checkpointer=memory_checkpointer)
 
 
 async def invoke_agent(
-    user_question: str, session_id: uuid.UUID, callbacks: list | None = None
-) -> str:
+    user_question: str,
+    session_id: uuid.UUID,
+    callbacks: list | None = None,
+    return_state: bool = False,
+) -> str | dict[str, Any]:
     config: RunnableConfig = {
         "configurable": {"thread_id": str(session_id)},
     }
@@ -48,6 +51,8 @@ async def invoke_agent(
     }
 
     response = await workflow.ainvoke(input=inputs, config=config)
+    if return_state:
+        return response
     return response["messages"][-1].content
 
 
