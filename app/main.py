@@ -2,7 +2,6 @@ import asyncio
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from app.features.agent.v1.agent import create_workflow
 from chainlit.utils import mount_chainlit
 from fastapi import Depends, FastAPI
 from langgraph.checkpoint.memory import MemorySaver
@@ -23,6 +22,7 @@ from app.core.middleware import (
     register_trusted_hosts_middleware,
 )
 from app.core.schemas import ApiResponse
+from app.features.agent.v1.graph import create_workflow
 
 setup_logging()
 
