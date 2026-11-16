@@ -40,9 +40,9 @@ def create_workflow(
 
 async def invoke_agent(
     user_question: str,
-    session_id: uuid.UUID 
-    callbacks: list[Any] | None = None,
+    session_id: uuid.UUID,
     workflow: CompiledStateGraph, 
+    callbacks: list[Any] | None = None,
     return_state: bool = False,
 ) -> str | dict[str, Any]:
     config: RunnableConfig = {
@@ -65,9 +65,9 @@ async def invoke_agent(
 async def stream_agent(
     user_question: str,
     session_id: uuid.UUID,
+    workflow: CompiledStateGraph, 
     callbacks: list[Any] | None = None,
     with_status: bool = False,
-    workflow: CompiledStateGraph,
 ) -> AsyncGenerator[dict[str, Any], None]:
     config: RunnableConfig = {
         "configurable": {"thread_id": str(session_id)},
