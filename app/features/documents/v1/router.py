@@ -6,7 +6,8 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from app.core.schemas import ApiResponse, PaginatedData
 from app.features.documents.v1.dependencies import get_document_service
 from app.features.documents.v1.retriever.indexing_pipeline import (
-    sync_folder_to_vectordb, sync_github_repo_to_vectordb 
+    sync_folder_to_vectordb,
+    sync_github_repo_to_vectordb,
 )
 from app.features.documents.v1.schemas.req import IndexStatFilterParams
 from app.features.documents.v1.schemas.res import (
@@ -22,6 +23,7 @@ async def sync_rag_documents(background_tasks: BackgroundTasks):
     job_id = uuid.uuid4()
     background_tasks.add_task(sync_folder_to_vectordb, job_id)
     return ApiResponse(message="Sync job queued", data={"job_id": job_id})
+
 
 @document_router.get("/sync-github", status_code=status.HTTP_202_ACCEPTED)
 async def sync_rag_documents_github(background_tasks: BackgroundTasks):
