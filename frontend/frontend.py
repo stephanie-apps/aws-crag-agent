@@ -6,6 +6,7 @@ from chainlit.types import ThreadDict
 
 from app.features.agent.v1.graph import stream_agent
 from app.features.agent.v1.schemas import DocumentWithSource
+from app.main import app
 
 
 @cl.on_chat_start
@@ -27,6 +28,7 @@ async def ask_agent(prompt: str, session_id: uuid.UUID):
             user_question=prompt,
             session_id=session_id,
             with_status=True,
+            workflow=app.state.workflow,
             callbacks=[cb],
         ):
             if chunk["type"] == "status":

@@ -1,8 +1,11 @@
 import asyncio
+from contextlib import asynccontextmanager
 from typing import Annotated
 
+from app.features.agent.v1.agent import create_workflow
 from chainlit.utils import mount_chainlit
 from fastapi import Depends, FastAPI
+from langgraph.checkpoint.memory import MemorySaver
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +25,14 @@ from app.core.middleware import (
 from app.core.schemas import ApiResponse
 
 setup_logging()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    checkpointer = MemorySaver()
+    app.state.workflow = create_workflow(checkpointer=checkpointer)
+    yield
+
 
 app = FastAPI(title=settings.api_name, version=settings.api_version)
 

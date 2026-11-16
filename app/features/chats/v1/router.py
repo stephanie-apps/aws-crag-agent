@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.sse import EventSourceResponse
 
 from app.features.agent.v1.graph import invoke_agent, stream_agent
@@ -21,11 +21,21 @@ async def get_new_session_id():
 
 
 @chat_router.post("/session/invoke")
-async def chat_invoke(request: ChatRequest):
-    response = await invoke_agent(request.user_question, request.session_id)
+async def chat_invoke(request_obj: Request, request: ChatRequest):
+    response = await invoke_agent(
+        request.user_question,
+        request.session_id,
+        workflow=request_obj.app.state.workflow,
+    )
     return {"response": response}
 
 
 @chat_router.post("/session/stream")
-async def chat_stream(request: ChatRequest):
-    return EventSourceResponse(stream_agent(request.user_question, request.session_id))
+async def chat_stream(request_obj: Request, request: ChatRequest):
+    return EventSourceResponse(
+        stream_agent(
+            request.user_question,
+            request.session_id,
+            workflow=request_obj.app.state.workflow,
+        )
+    )
