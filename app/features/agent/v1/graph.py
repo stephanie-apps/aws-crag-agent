@@ -124,7 +124,7 @@ async def stream_agent(
                     yield {"type": "token", "content": text}
 
         elif chunk_type == "updates" and isinstance(chunk_data, dict):
-            for node_name, node_output in chunk_data.items():
+            for node_name, node_output in chunk_data.values():
                 if (
                     isinstance(node_output, dict)
                     and "documents_with_sources" in node_output
