@@ -1,4 +1,5 @@
 
+import asyncio
 from llama_index.core import VectorStoreIndex
 from llama_index.core.postprocessor import (
     SentenceTransformerRerank,
@@ -8,7 +9,6 @@ from llama_index.core.schema import NodeWithScore, QueryBundle
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.vector_stores.postgres import PGVectorStore
 
-import asyncio
 from app.core.config import settings
 from app.core.database.session import async_engine, sync_engine
 
