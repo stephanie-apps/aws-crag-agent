@@ -2,7 +2,7 @@ import structlog
 from langchain_tavily import TavilySearch
 
 from app.features.agent.v1.schemas import DocumentWithSource
-from app.features.documents.v1.retriever.vector_db import hybrid_retriever
+from app.features.documents.v1.retriever.vector_db import retrieve_documents
 
 tavily_web_search = TavilySearch(max_results=3, search_depth="basic")
 
@@ -47,7 +47,7 @@ async def retriever_tool(user_question: str) -> tuple:
     formatted_context_list = []
     documents_with_sources = []
     try:
-        nodes = await hybrid_retriever.aretrieve(user_question)
+        nodes = await retrieve_documents(user_question)
 
         for index, node in enumerate(nodes, start=1):
             file = node.node.metadata.get("source", f"PDF Source  {index}")
