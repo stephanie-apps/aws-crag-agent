@@ -1,10 +1,6 @@
 import asyncio
 
 from llama_index.core import VectorStoreIndex
-from llama_index.core.postprocessor import (
-    SentenceTransformerRerank,
-    SimilarityPostprocessor,
-)
 from llama_index.core.schema import NodeWithScore, QueryBundle
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.vector_stores.postgres import PGVectorStore
@@ -30,12 +26,25 @@ hybrid_retriever = index.as_retriever(
     hybrid_top_k=15,
 )
 
-reranker = SentenceTransformerRerank(
-    model="BAAI/bge-reranker-base",
-    top_n=5,
-)
+from fastembed.rerank.cross_encoder import TextCrossEncoder
+from llama_index.core.postprocessor import SimilarityPostprocessor
 
+cross_encoder = TextCrossEncoder(model_name="BAAI/bge-reranker-base")
 score_cutoff = SimilarityPostprocessor(similarity_cutoff=0.5)
+
+
+def _rerank_sync(
+    query: str, nodes: list[NodeWithScore], top_n: int = 5
+) -> list[NodeWithScore]:
+    texts = [n.node.get_content() for n in nodes]
+    scores = list(cross_encoder.rerank(query, texts))
+
+    # calibrated reranker scores to each node and sort descending
+    for node, score in zip(nodes, scores):
+        node.score = float(score)
+
+        ranked = sorted(nodes, key=lambda n: n.score or 0.0, reverse=True)
+        return ranked[:top_n]
 
 
 async def retrieve_documents(query: str) -> list[NodeWithScore]:
@@ -43,10 +52,7 @@ async def retrieve_documents(query: str) -> list[NodeWithScore]:
     if not nodes:
         return []
 
-    query_bundle = QueryBundle(query)
-    reranked_nodes = await asyncio.to_thread(
-        reranker.postprocess_nodes,
-        nodes,
-        query_bundle=query_bundle,
+    reranked_nodes = await asyncio.to_thread(_rerank_sync, query, nodes, 5)
+    return score_cutoff.postprocess_nodes(
+        reranked_nodes, query_bundle=QueryBundle(query)
     )
-    return score_cutoff.postprocess_nodes(reranked_nodes, query_bundle=query_bundle)
