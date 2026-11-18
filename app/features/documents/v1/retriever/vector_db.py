@@ -1,4 +1,3 @@
-
 import asyncio
 
 from llama_index.core import VectorStoreIndex
@@ -38,6 +37,7 @@ reranker = SentenceTransformerRerank(
 
 score_cutoff = SimilarityPostprocessor(similarity_cutoff=0.5)
 
+
 async def retrieve_documents(query: str) -> list[NodeWithScore]:
     nodes = await hybrid_retriever.aretrieve(query)
     if not nodes:
@@ -49,6 +49,4 @@ async def retrieve_documents(query: str) -> list[NodeWithScore]:
         nodes,
         query_bundle=query_bundle,
     )
-    return score_cutoff.postprocess_nodes(
-        reranked_nodes, query_bundle=query_bundle
-    )
+    return score_cutoff.postprocess_nodes(reranked_nodes, query_bundle=query_bundle)
