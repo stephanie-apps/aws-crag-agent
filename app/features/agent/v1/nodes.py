@@ -12,7 +12,7 @@ from app.features.agent.v1.schemas import (
 from app.features.agent.v1.state import (
     GraphState,
 )
-from app.features.agent.v1.tools import retriever_tool
+from app.features.agent.v1.tools import retriever_tool, web_search_tool
 
 
 async def intent_classifier_node(state: GraphState):
@@ -86,6 +86,18 @@ async def retriever_node(state: GraphState):
     return {
         "retrieval_results": documents_with_sources_formatted_str,
         "documents_with_sources": documents_with_sources,
+        "is_retrieval_sufficient": bool(documents_with_sources_formatted_str),
+    }
+
+
+async def web_search_node(state: GraphState):
+    log_node_status("Performing Web Search")
+    documents_with_sources, combined_web_context = await web_search_tool(
+        state.rewritten_user_question or ""
+    )
+    return {
+        "web_search_results": combined_web_context,
+        "documents_with_sources": documents_with_sources,
     }
 
 
@@ -122,6 +134,7 @@ nodes = [
     output_guardrail_node,
     fallback_node,
     retriever_node,
+    web_search_node,
     query_rewriter_node,
     generator_node,
 ]

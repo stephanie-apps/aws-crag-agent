@@ -13,6 +13,7 @@ from app.features.agent.v1.routers import (
     intent_router,
     is_input_safe_router,
     is_output_safe_router,
+    web_search_fallback_router,
 )
 from app.features.agent.v1.state import GraphState
 
@@ -29,7 +30,8 @@ def create_workflow(
     graph.add_conditional_edges("input_guardrail_node", is_input_safe_router)
     graph.add_conditional_edges("intent_classifier_node", intent_router)
     graph.add_edge("query_rewriter_node", "retriever_node")
-    graph.add_edge("retriever_node", "generator_node")
+    graph.add_conditional_edges("retriever_node", web_search_fallback_router)
+    graph.add_edge("web_search_node", "generator_node")
     graph.add_edge("generator_node", "output_guardrail_node")
     graph.add_conditional_edges("output_guardrail_node", is_output_safe_router)
     graph.add_edge("fallback_node", END)
@@ -122,7 +124,7 @@ async def stream_agent(
                     yield {"type": "token", "content": text}
 
         elif chunk_type == "updates" and isinstance(chunk_data, dict):
-            for node_name, node_output in chunk_data.values():
+            for node_output in chunk_data.values():
                 if (
                     isinstance(node_output, dict)
                     and "documents_with_sources" in node_output

@@ -20,6 +20,13 @@ def intent_router(state: GraphState):
         return "fallback_node"
 
 
+def web_search_fallback_router(state: GraphState):
+    if state.is_retrieval_sufficient:
+        return "generator_node"
+    else:
+        return "web_search_node"
+
+
 def is_output_safe_router(state: GraphState):
     if state.is_output_safe:
         return END
