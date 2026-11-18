@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title=settings.api_name, version=settings.api_version)
+app = FastAPI(title=settings.api_name, version=settings.api_version, lifespan=lifespan)
 
 app.include_router(v1_router, prefix="/api/v1")
 mount_chainlit(
