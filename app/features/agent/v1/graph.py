@@ -37,11 +37,10 @@ def create_workflow(
     return graph.compile(checkpointer=checkpointer)
 
 
-
 async def invoke_agent(
     user_question: str,
     session_id: uuid.UUID,
-    workflow: CompiledStateGraph, 
+    workflow: CompiledStateGraph,
     callbacks: list[Any] | None = None,
     return_state: bool = False,
 ) -> str | dict[str, Any]:
@@ -65,7 +64,7 @@ async def invoke_agent(
 async def stream_agent(
     user_question: str,
     session_id: uuid.UUID,
-    workflow: CompiledStateGraph, 
+    workflow: CompiledStateGraph,
     callbacks: list[Any] | None = None,
     with_status: bool = False,
 ) -> AsyncGenerator[dict[str, Any], None]:
@@ -116,8 +115,7 @@ async def stream_agent(
                     text = "".join(
                         block.get("text", "")
                         for block in msg.content
-                        if isinstance(block, dict)
-                        and block.get("type") == "text"
+                        if isinstance(block, dict) and block.get("type") == "text"
                     )
 
                 if text:
