@@ -16,6 +16,9 @@ from app.features.agent.v1.routers import (
     web_search_fallback_router,
 )
 from app.features.agent.v1.state import GraphState
+from app.features.agent.v1.schemas import AgentResponse
+
+
 
 
 def create_workflow(
@@ -45,7 +48,7 @@ async def invoke_agent(
     workflow: CompiledStateGraph,
     callbacks: list[Any] | None = None,
     return_state: bool = False,
-) -> str | dict[str, Any]:
+) -> AgentResponse:
     config: RunnableConfig = {
         "configurable": {"thread_id": str(session_id)},
     }
@@ -58,9 +61,10 @@ async def invoke_agent(
     }
 
     response = await workflow.ainvoke(input=inputs, config=config)
-    if return_state:
-        return response
-    return response["messages"][-1].content
+    return AgentResponse(
+                answer=response["messages"][-1].content,
+                sources=response.get("documents_with_sources", []),
+                state=response if return_state else None,)
 
 
 async def stream_agent(
