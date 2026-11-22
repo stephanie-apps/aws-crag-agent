@@ -215,8 +215,10 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
                         source_id = f"github:{file_name}"
                         active_github_sources.add(source_id)
 
-                        raw_url = f"https://api.github.com/repos/{gh_user}/{gh_repo}/contents/{file_path_str}?ref={gh_branch}"
-                        file_response = client.get(raw_url, headers=headers)
+                        content_url = f"https://api.github.com/repos/{gh_user}/{gh_repo}/contents/{file_path_str}?ref={gh_branch}"
+                        content_headers = {**headers, "Accept": "application/vnd.github.raw+json"}
+                        
+                        file_response = client.get(content_url, headers=content_headers)
                         file_response.raise_for_status()
 
                         file_bytes = io.BytesIO(file_response.content)
