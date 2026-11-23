@@ -108,18 +108,20 @@ def sync_folder_to_vectordb(job_id: uuid.UUID) -> None:
                     result = markitdown.convert(file_path)
                     text_content = result.text_content
 
+               
                 base_doc = LlamaDocument(
                     text=text_content,
                     doc_id=source_id,
-                    extra_info={"source": source_id},
+                    extra_info={"source": source_id, "indexed_at": datetime.now(UTC).isoformat()},
                 )
 
                 existing_hash = docstore.get_document_hash(source_id)
-                pipeline.run(documents=[base_doc])
 
                 if existing_hash is None:
+                    pipeline.run(documents=[base_doc])
                     total_stats["num_added"] += 1
                 elif existing_hash != base_doc.hash:
+                    pipeline.run(documents=[base_doc])
                     total_stats["num_updated"] += 1
                 else:
                     total_stats["num_skipped"] += 1
@@ -231,15 +233,16 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
                         base_doc = LlamaDocument(
                             text=text_content,
                             doc_id=source_id,
-                            extra_info={"source": file_name, "github_sha": item["sha"]},
+                            extra_info={"source": file_name, "indexed_at": datetime.now(UTC).isoformat(), "github_sha": item["sha"]},
                         )
 
                         existing_hash = docstore.get_document_hash(source_id)
-                        pipeline.run(documents=[base_doc])
 
                         if existing_hash is None:
+                            pipeline.run(documents=[base_doc])
                             total_stats["num_added"] += 1
                         elif existing_hash != base_doc.hash:
+                            pipeline.run(documents=[base_doc])
                             total_stats["num_updated"] += 1
                         else:
                             total_stats["num_skipped"] += 1
