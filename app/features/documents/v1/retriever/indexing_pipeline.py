@@ -231,7 +231,7 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
                         base_doc = LlamaDocument(
                             text=text_content,
                             doc_id=source_id,
-                            extra_info={"source": source_id, "github_sha": item["sha"]},
+                            extra_info={"source": file_name, "github_sha": item["sha"]},
                         )
 
                         existing_hash = docstore.get_document_hash(source_id)
