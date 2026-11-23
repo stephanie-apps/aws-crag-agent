@@ -126,11 +126,12 @@ def sync_folder_to_vectordb(job_id: uuid.UUID) -> None:
 
             # Clean up deleted files
             all_tracked_docs = docstore.get_all_document_hashes()
-            for document_hash, file_name in list(all_tracked_docs.items()):
-                if file_name not in active_sources:
-                    vector_store.delete(ref_doc_id=document_hash)
-                    docstore.delete_document(doc_id=document_hash)
-                    total_stats["num_deleted"] += 1
+            for document_id, document_hash in list(all_tracked_docs.items()):
+              if not document_id.startswith("github:") and document_id not in active_sources:
+                 vector_store.delete(ref_doc_id=document_id)
+                 docstore.delete_document(doc_id=document_id)
+                 total_stats["num_deleted"] += 1
+
 
             # Save metrics
             new_job.num_added = total_stats["num_added"]
@@ -245,11 +246,11 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
 
             # Clean up deleted files
             all_tracked_docs = docstore.get_all_document_hashes()
-            for document_hash, file_name in list(all_tracked_docs.items()):
-                if file_name not in active_github_sources:
-                    vector_store.delete(ref_doc_id=document_hash)
-                    docstore.delete_document(doc_id=document_hash)
-                    total_stats["num_deleted"] += 1
+            for document_id, document_hash in list(all_tracked_docs.items()):
+              if document_id.startswith("github:") and document_id not in active_sources:
+                 vector_store.delete(ref_doc_id=document_id)
+                 docstore.delete_document(doc_id=document_id)
+                 total_stats["num_deleted"] += 1
 
             new_job.num_added = total_stats["num_added"]
             new_job.num_updated = total_stats["num_updated"]
