@@ -5,6 +5,12 @@ from pydantic import BaseModel, ConfigDict
 
 from app.features.documents.v1.schemas.enums import IndexingStatus
 
+class IndexedDocumentOut(BaseModel):
+    doc_id: str
+    file_name: str
+    source_type: str  
+    indexed_at: str | None = None
+    github_sha: str | None = None
 
 class IndexStat(BaseModel):
     start_time: datetime
