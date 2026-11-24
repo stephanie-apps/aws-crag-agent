@@ -1,10 +1,7 @@
 from enum import StrEnum, auto
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
-
-from typing import Any
-from pydantic import BaseModel
 
 
 class UserIntent(StrEnum):

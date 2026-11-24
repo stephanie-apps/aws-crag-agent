@@ -15,8 +15,8 @@ from app.features.agent.v1.routers import (
     is_output_safe_router,
     web_search_fallback_router,
 )
-from app.features.agent.v1.state import GraphState
 from app.features.agent.v1.schemas import AgentResponse
+from app.features.agent.v1.state import GraphState
 
 
 def create_workflow(

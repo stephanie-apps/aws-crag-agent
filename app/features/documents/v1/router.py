@@ -6,12 +6,12 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from app.core.schemas import ApiResponse, PaginatedData
 from app.features.documents.v1.dependencies import get_document_service
 from app.features.documents.v1.retriever.indexing_pipeline import (
+    docstore,
     sync_folder_to_vectordb,
     sync_github_repo_to_vectordb,
-    docstore,
 )
 from app.features.documents.v1.schemas.req import IndexStatFilterParams
-from app.features.documents.v1.schemas.res import IndexStat, IndexedDocumentOut
+from app.features.documents.v1.schemas.res import IndexedDocumentOut, IndexStat
 from app.features.documents.v1.service import DocumentService
 
 document_router = APIRouter()
