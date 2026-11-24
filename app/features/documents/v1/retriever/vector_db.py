@@ -12,7 +12,7 @@ embeddings = FastEmbedEmbedding(model_name=settings.embedding_model)
 
 vector_store = PGVectorStore(
     engine=sync_engine,
-    async_engine=async_engine, 
+    async_engine=async_engine,
     table_name=settings.vector_collection_name,
     embed_dim=384,
     hybrid_search=True,

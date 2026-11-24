@@ -108,11 +108,13 @@ def sync_folder_to_vectordb(job_id: uuid.UUID) -> None:
                     result = markitdown.convert(file_path)
                     text_content = result.text_content
 
-               
                 base_doc = LlamaDocument(
                     text=text_content,
                     doc_id=source_id,
-                    extra_info={"source": source_id, "indexed_at": datetime.now(UTC).isoformat()},
+                    extra_info={
+                        "source": source_id,
+                        "indexed_at": datetime.now(UTC).isoformat(),
+                    },
                 )
 
                 existing_hash = docstore.get_document_hash(source_id)
@@ -129,11 +131,13 @@ def sync_folder_to_vectordb(job_id: uuid.UUID) -> None:
             # Clean up deleted files
             all_tracked_docs = docstore.get_all_document_hashes()
             for document_id, document_hash in list(all_tracked_docs.items()):
-              if not document_id.startswith("github:") and document_id not in active_sources:
-                 vector_store.delete(ref_doc_id=document_id)
-                 docstore.delete_document(doc_id=document_id)
-                 total_stats["num_deleted"] += 1
-
+                if (
+                    not document_id.startswith("github:")
+                    and document_id not in active_sources
+                ):
+                    vector_store.delete(ref_doc_id=document_id)
+                    docstore.delete_document(doc_id=document_id)
+                    total_stats["num_deleted"] += 1
 
             # Save metrics
             new_job.num_added = total_stats["num_added"]
@@ -219,14 +223,18 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
                         active_github_sources.add(source_id)
 
                         content_url = f"https://api.github.com/repos/{gh_user}/{gh_repo}/contents/{file_path_str}?ref={gh_branch}"
-                        
+
                         file_response = client.get(content_url, headers=headers)
                         file_response.raise_for_status()
 
                         download_url = file_response.json().get("download_url")
-                        content_response = client.get(download_url,headers={
-                                                "User-Agent": "aws-crag-agent",
-                        }, follow_redirects=True,)
+                        content_response = client.get(
+                            download_url,
+                            headers={
+                                "User-Agent": "aws-crag-agent",
+                            },
+                            follow_redirects=True,
+                        )
                         content_response.raise_for_status()
 
                         file_bytes = io.BytesIO(content_response.content)
@@ -235,19 +243,25 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
                             file_bytes, file_extension=file_extension
                         ).text_content
                         if file_extension.lower() in TEXT_EXTENSIONS:
-                                text_content = content_response.content.decode("utf-8", errors="replace")
+                            text_content = content_response.content.decode(
+                                "utf-8", errors="replace"
+                            )
                         else:
-                                file_bytes = io.BytesIO(content_response.content)
-                                text_content = markitdown.convert_stream(
-                                                file_bytes,
-                                                        file_extension=file_extension.lower(),
-                                                                charset="utf-8",
-                                                                    ).text_content
+                            file_bytes = io.BytesIO(content_response.content)
+                            text_content = markitdown.convert_stream(
+                                file_bytes,
+                                file_extension=file_extension.lower(),
+                                charset="utf-8",
+                            ).text_content
 
                         base_doc = LlamaDocument(
                             text=text_content,
                             doc_id=source_id,
-                            extra_info={"source": file_name, "indexed_at": datetime.now(UTC).isoformat(), "github_sha": item["sha"]},
+                            extra_info={
+                                "source": file_name,
+                                "indexed_at": datetime.now(UTC).isoformat(),
+                                "github_sha": item["sha"],
+                            },
                         )
 
                         existing_hash = docstore.get_document_hash(source_id)
@@ -264,10 +278,13 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
             # Clean up deleted files
             all_tracked_docs = docstore.get_all_document_hashes()
             for document_id, document_hash in list(all_tracked_docs.items()):
-              if document_id.startswith("github:") and document_id not in active_github_sources:
-                 vector_store.delete(ref_doc_id=document_id)
-                 docstore.delete_document(doc_id=document_id)
-                 total_stats["num_deleted"] += 1
+                if (
+                    document_id.startswith("github:")
+                    and document_id not in active_github_sources
+                ):
+                    vector_store.delete(ref_doc_id=document_id)
+                    docstore.delete_document(doc_id=document_id)
+                    total_stats["num_deleted"] += 1
 
             new_job.num_added = total_stats["num_added"]
             new_job.num_updated = total_stats["num_updated"]

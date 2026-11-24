@@ -19,8 +19,6 @@ from app.features.agent.v1.state import GraphState
 from app.features.agent.v1.schemas import AgentResponse
 
 
-
-
 def create_workflow(
     checkpointer: BaseCheckpointSaver,
 ) -> CompiledStateGraph:
@@ -62,9 +60,10 @@ async def invoke_agent(
 
     response = await workflow.ainvoke(input=inputs, config=config)
     return AgentResponse(
-                answer=response["messages"][-1].content,
-                sources=response.get("documents_with_sources", []),
-                state=response if return_state else None,)
+        answer=response["messages"][-1].content,
+        sources=response.get("documents_with_sources", []),
+        state=response if return_state else None,
+    )
 
 
 async def stream_agent(

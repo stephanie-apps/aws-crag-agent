@@ -1,4 +1,4 @@
-from enum import StrEnum, auto 
+from enum import StrEnum, auto
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -24,16 +24,19 @@ class IntentSchema(BaseModel):
     )
     reason: str = Field(description="Reason for the classification category selected")
 
+
 class DocumentWithSource(BaseModel):
     index: int
     source_type: Literal["pdf", "web"]
     content: str
     file: str
 
+
 class AgentResponse(BaseModel):
     answer: str
     sources: list[DocumentWithSource] = []
     state: dict[str, Any] | None = None
+
 
 class RewrittenQueryOutput(BaseModel):
     rag_query: str = Field(
@@ -49,5 +52,3 @@ class OutputFeedback(BaseModel):
         "PII_sensitive_data", "toxicity_bias", "hallucination", "internal_architecture"
     ]
     reason: str
-
-

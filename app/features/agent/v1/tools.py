@@ -12,31 +12,42 @@ logger = structlog.get_logger()
 
 async def web_search_tool(
     user_question: str,
-    ) -> tuple[list[DocumentWithSource], str]:
-        try:
-            response = await tavily_web_search.ainvoke({"query": user_question})
-            results_list = (response.get("results", []) if isinstance(response, dict) else [])
+) -> tuple[list[DocumentWithSource], str]:
+    try:
+        response = await tavily_web_search.ainvoke({"query": user_question})
+        results_list = response.get("results", []) if isinstance(response, dict) else []
 
-            formatted_context_blocks = []
-            documents_with_sources = []
+        formatted_context_blocks = []
+        documents_with_sources = []
 
-            for index, result in enumerate(results_list, start=1):
-                url = result.get("url", f"Web Source {index}")
-                content = result.get("content", "")
+        for index, result in enumerate(results_list, start=1):
+            url = result.get("url", f"Web Source {index}")
+            content = result.get("content", "")
 
-                documents_with_sources.append(DocumentWithSource(index=index, source_type="web", file=url, content=content,))
-                                                    
-                formatted_context_blocks.append( f"--- Web Context Block [{index} (web)] ---\n"
-                                                f"Source URL: {url}\n"
-                                                  f"Extracted Content: {content}\n" )
+            documents_with_sources.append(
+                DocumentWithSource(
+                    index=index,
+                    source_type="web",
+                    file=url,
+                    content=content,
+                )
+            )
 
-                combined_web_context = "\n".join(formatted_context_blocks)
-                return (documents_with_sources, combined_web_context)
+            formatted_context_blocks.append(
+                f"--- Web Context Block [{index} (web)] ---\n"
+                f"Source URL: {url}\n"
+                f"Extracted Content: {content}\n"
+            )
 
-        except Exception:
-            logger.exception("Tavily Search Failed")
-            combined_web_context = "No real-time web search results could be retrieved due to system limits."
-            return ([], combined_web_context) 
+            combined_web_context = "\n".join(formatted_context_blocks)
+            return (documents_with_sources, combined_web_context)
+
+    except Exception:
+        logger.exception("Tavily Search Failed")
+        combined_web_context = (
+            "No real-time web search results could be retrieved due to system limits."
+        )
+        return ([], combined_web_context)
 
 
 async def retriever_tool(user_question: str) -> tuple:

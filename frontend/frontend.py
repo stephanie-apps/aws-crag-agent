@@ -79,6 +79,7 @@ async def on_message(message: cl.Message):
 async def on_chat_resume(session: ThreadDict):
     pass
 
+
 @cl.data_layer
 def get_data_layer():
     return None
