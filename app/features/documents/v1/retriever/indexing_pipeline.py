@@ -219,16 +219,30 @@ def sync_github_repo_to_vectordb(job_id: uuid.UUID) -> None:
                         active_github_sources.add(source_id)
 
                         content_url = f"https://api.github.com/repos/{gh_user}/{gh_repo}/contents/{file_path_str}?ref={gh_branch}"
-                        content_headers = {**headers, "Accept": "application/vnd.github.raw+json"}
                         
-                        file_response = client.get(content_url, headers=content_headers)
+                        file_response = client.get(content_url, headers=headers)
                         file_response.raise_for_status()
 
-                        file_bytes = io.BytesIO(file_response.content)
+                        download_url = file_response.json().get("download_url")
+                        content_response = client.get(download_url,headers={
+                                                "User-Agent": "aws-crag-agent",
+                        }, follow_redirects=True,)
+                        content_response.raise_for_status()
+
+                        file_bytes = io.BytesIO(content_response.content)
 
                         text_content = markitdown.convert_stream(
                             file_bytes, file_extension=file_extension
                         ).text_content
+                        if file_extension.lower() in TEXT_EXTENSIONS:
+                                text_content = content_response.content.decode("utf-8", errors="replace")
+                        else:
+                                file_bytes = io.BytesIO(content_response.content)
+                                text_content = markitdown.convert_stream(
+                                                file_bytes,
+                                                        file_extension=file_extension.lower(),
+                                                                charset="utf-8",
+                                                                    ).text_content
 
                         base_doc = LlamaDocument(
                             text=text_content,
